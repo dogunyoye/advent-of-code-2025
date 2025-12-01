@@ -8,10 +8,7 @@ def part_one(data) -> int:
     dial = 50
     for line in data.splitlines():
         direction, distance = line[0], int(line[1:])
-        if direction == "L":
-            dial = (dial - distance) % 100
-        else:
-            dial = (dial + distance) % 100
+        dial = (dial - distance) % 100 if direction == "L" else (dial + distance) % 100
         if dial == 0:
             result += 1
     return result
