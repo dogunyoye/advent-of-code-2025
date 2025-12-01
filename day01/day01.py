@@ -27,7 +27,6 @@ def part_two(data) -> int:
         for idx in range(prev_dial, end, step):
             if idx % 100 == 0:
                 result += 1
-
     return result
 
 
