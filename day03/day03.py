@@ -20,27 +20,27 @@ def part_one(data) -> int:
 # number within the bank (from left to right) that
 # also leaves enough space (remaining numbers) to
 # achieve our requirement of 12 numbers. This will
-# give us the largest number we can make
+# give us the largest number we can make for the bank
 def part_two(data) -> int:
     result = 0
     lines = data.splitlines()
     for bank in lines:
-        joltages = [int(digit) for digit in bank]
-        largest_number = []
-
+        largest_joltage = []
         largest_idx = -1
         remaining = 12
+        bank_length = len(bank)
 
         while remaining != 0:
             largest = -1
-            for i in range(largest_idx + 1, len(joltages)):
-                if joltages[i] > largest and (len(joltages) - i) >= remaining:
-                    largest = joltages[i]
+            for i in range(largest_idx + 1, bank_length):
+                battery = int(bank[i])
+                if battery > largest and (bank_length - i) >= remaining:
+                    largest = battery
                     largest_idx = i
-            largest_number.append(largest)
+            largest_joltage.append(largest)
             remaining -= 1
 
-        result += int(''.join(str(num) for num in largest_number))
+        result += int(''.join(str(num) for num in largest_joltage))
     return result
 
 
