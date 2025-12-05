@@ -31,6 +31,7 @@ def part_one(data) -> int:
 
 
 def part_two(data) -> int:
+    result = 0
     ranges, _ = __parse_ranges_and_ids(data)
 
     # sorting the ranges means we only
@@ -53,11 +54,12 @@ def part_two(data) -> int:
             # left overlap
             elif r1[0] <= r2[0] <= r1[1] <= r2[1]:
                 ranges[j] = (r1[1] + 1,  r2[1])
-
-    result = 0
-    for r in ranges:
-        if r != (-1, -1):
-            result += (r[1] - r[0]) + 1
+            else:
+            # once we find the first disjoint range
+            # all other ranges thereafter will also
+            # be disjoint, so we terminate early
+                break
+        result += (r1[1] - r1[0]) + 1
 
     return result
 
