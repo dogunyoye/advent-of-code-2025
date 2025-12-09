@@ -64,8 +64,7 @@ def part_two(data) -> int:
         junction_boxes_connected.add(j[0])
         junction_boxes_connected.add(j[1])
         if len(junction_boxes_connected) == junction_boxes_len and uf.n_comps == 1:
-            if len(uf.components()[0]) == junction_boxes_len:
-                return junction_boxes[j[0]][0] * junction_boxes[j[1]][0]
+            return junction_boxes[j[0]][0] * junction_boxes[j[1]][0]
 
     raise Exception("No solution!")
 
