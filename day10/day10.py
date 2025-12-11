@@ -1,7 +1,7 @@
 import os.path
 from collections import deque
 
-from z3 import Int, Sum, sat, Solver, IntVal, Optimize
+from z3 import Int, Sum, sat, IntVal, Optimize
 
 DATA = os.path.join(os.path.dirname(__file__), 'day10.txt')
 
