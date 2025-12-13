@@ -31,7 +31,7 @@ def parse_input(text) -> tuple:
             continue
 
         # --- Sequence block (e.g., "4x4: 0 0 0 0 2 0") ---
-        seq_match = re.match(r"^(\S+):\s+(.*)$", line)
+        seq_match: re.Match = re.match(r"^(\S+):\s+(.*)$", line)
         if seq_match:
             label = seq_match.group(1)
             nums = list(map(int, seq_match.group(2).split()))
