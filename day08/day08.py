@@ -1,5 +1,6 @@
 import math
 import os.path
+import heapq
 
 # pip install pyunionfind
 from unionfind import UnionFind
@@ -21,18 +22,19 @@ def __euclidean_distance(p, q) -> float:
 
 def part_one(data) -> int:
     junction_boxes = __parse_junction_boxes(data)
-    junction_boxes_len = len(junction_boxes)
-    distances = []
+    distances_pq = []
 
     for i in range(len(junction_boxes)):
         for j in range(i + 1, len(junction_boxes)):
-            distances.append((i, j, __euclidean_distance(junction_boxes[i], junction_boxes[j])))
+            heapq.heappush(distances_pq, (__euclidean_distance(junction_boxes[i], junction_boxes[j]), (i, j)))
 
-    distances = sorted(distances, key=lambda d: d[2])[:junction_boxes_len]
     uf = UnionFind()
+    distances = 1000
 
-    for j in distances:
-        uf.union(j[0], j[1])
+    while distances != 0:
+        _, box = heapq.heappop(distances_pq)
+        uf.union(box[0], box[1])
+        distances -= 1
 
     components = sorted(uf.components(), key=lambda c: len(c), reverse=True)
     return len(components[0]) * len(components[1]) * len(components[2])
@@ -41,13 +43,12 @@ def part_one(data) -> int:
 def part_two(data) -> int:
     junction_boxes = __parse_junction_boxes(data)
     junction_boxes_len = len(junction_boxes)
-    distances = []
+    distances_pq = []
 
     for i in range(len(junction_boxes)):
         for j in range(i + 1, len(junction_boxes)):
-            distances.append((i, j, __euclidean_distance(junction_boxes[i], junction_boxes[j])))
+            heapq.heappush(distances_pq, (__euclidean_distance(junction_boxes[i], junction_boxes[j]), (i, j)))
 
-    distances = sorted(distances, key=lambda d: d[2])
     uf = UnionFind()
 
     # Optimisation to ensure we're
@@ -59,12 +60,13 @@ def part_two(data) -> int:
     # box.
     junction_boxes_connected = set()
 
-    for j in distances:
-        uf.union(j[0], j[1])
-        junction_boxes_connected.add(j[0])
-        junction_boxes_connected.add(j[1])
+    while len(distances_pq) != 0:
+        _, box = heapq.heappop(distances_pq)
+        uf.union(box[0], box[1])
+        junction_boxes_connected.add(box[0])
+        junction_boxes_connected.add(box[1])
         if len(junction_boxes_connected) == junction_boxes_len and uf.n_comps == 1:
-            return junction_boxes[j[0]][0] * junction_boxes[j[1]][0]
+            return junction_boxes[box[0]][0] * junction_boxes[box[1]][0]
 
     raise Exception("No solution!")
 
