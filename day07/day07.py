@@ -13,14 +13,17 @@ def __print_grid(grid):
         print(line)
 
 
-def __generate_grid(data) -> dict:
+def __generate_grid(data) -> tuple:
     grid = {}
+    start = (-1, -1)
     i = 0
     for line in data.splitlines():
         for j, c in enumerate(line):
+            if c == "S":
+                start = (i, j)
             grid[(i, j)] = c
         i += 1
-    return grid
+    return grid, start
 
 
 def __determine_number_of_timelines(grid, beam, memo) -> int:
@@ -44,13 +47,9 @@ def __determine_number_of_timelines(grid, beam, memo) -> int:
 
 def part_one(data) -> int:
     result = 0
-    grid = __generate_grid(data)
+    grid, start = __generate_grid(data)
     queue = deque()
-
-    for k, v in grid.items():
-        if v == "S":
-            queue.append(k)
-            break
+    queue.append(start)
 
     while len(queue) != 0:
         beam = queue.popleft()
@@ -61,26 +60,16 @@ def part_one(data) -> int:
                 grid[next_beam] = "|"
                 queue.append(next_beam)
             elif v == "^":
-                split_left = (next_beam[0], next_beam[1] - 1)
-                split_right = (next_beam[0], next_beam[1] + 1)
-                grid[split_left] = "|"
-                grid[split_right] = "|"
+                split_left, split_right = (next_beam[0], next_beam[1] - 1), (next_beam[0], next_beam[1] + 1)
+                grid[split_left], grid[split_right] = "|", "|"
                 queue.append(split_left)
                 queue.append(split_right)
                 result += 1
-
     return result
 
 
 def part_two(data) -> int:
-    grid = __generate_grid(data)
-    start = (-1, -1)
-
-    for k, v in grid.items():
-        if v == "S":
-            start = k
-            break
-
+    grid, start = __generate_grid(data)
     return __determine_number_of_timelines(grid, start, {})
 
 
