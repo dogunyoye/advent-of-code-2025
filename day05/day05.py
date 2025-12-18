@@ -42,15 +42,15 @@ def part_two(data) -> int:
 
     for i in range(len(ranges)):
         r1 = ranges[i]
-        if r1 == (-1, -1):
+        if r1 is None:
             continue
         for j in range(i + 1, len(ranges)):
             r2 = ranges[j]
-            if r2 == (-1, -1):
+            if r2 is None:
                 continue
             # entire range is within the other range
             if r1[0] <= r2[0] <= r1[1] and r1[0] <= r2[1] <= r1[1]:
-                ranges[j] = (-1, -1)
+                ranges[j] = None
             # left overlap
             elif r1[0] <= r2[0] <= r1[1] <= r2[1]:
                 ranges[j] = (r1[1] + 1,  r2[1])
