@@ -48,7 +48,10 @@ def part_two(data) -> int:
             r2 = ranges[j]
             if r2 is None:
                 continue
-            # entire range is within the other range
+            # Entire range is within the other range
+            # so we can "eliminate" the other range
+            # by making it None. We don't need to
+            # compare it to any other ranges
             if r1[0] <= r2[0] <= r1[1] and r1[0] <= r2[1] <= r1[1]:
                 ranges[j] = None
             # left overlap
