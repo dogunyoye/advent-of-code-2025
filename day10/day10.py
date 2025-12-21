@@ -73,8 +73,8 @@ def __bfs(machine) -> int:
 def part_one(data) -> int:
     result = 0
     machines = __parse_machines(data)
-    for i, m in enumerate(machines):
-        result += __bfs(m)
+    for machine in machines:
+        result += __bfs(machine)
     return result
 
 
