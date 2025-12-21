@@ -8,17 +8,30 @@ DATA = os.path.join(os.path.dirname(__file__), 'day10.txt')
 
 class Machine(object):
 
-    def __init__(self, light_diagram, buttons, joltage_requirements):
+    def __init__(self, light_diagram, light_diagram_length, buttons, joltage_requirements):
         self.light_diagram = light_diagram
+        self.light_diagram_length = light_diagram_length
         self.buttons = buttons
         self.joltage_requirements = joltage_requirements
+
+
+def encode_to_bitmask(pattern: str) -> int:
+    bitmask = 0
+    for ch in pattern:
+        bitmask <<= 1              # shift left to make room
+        if ch == '#':
+            bitmask |= 1           # set the lowest bit
+        elif ch != '.':
+            raise ValueError(f"Invalid character: {ch}")
+    return bitmask
 
 
 def __parse_machines(data) -> list[Machine]:
     machines = []
     for line in data.splitlines():
         parts = line.split()
-        light_diagram = list(parts[0][1:len(parts[0])-1])
+        light_diagram_list = list(parts[0][1:len(parts[0])-1])
+        light_diagram = encode_to_bitmask("".join(light_diagram_list))
         joltage_requirements = list(map(int, parts[-1][1:len(parts[-1])-1].split(",")))
         buttons = []
         for b in parts[1:-1]:
@@ -26,43 +39,33 @@ def __parse_machines(data) -> list[Machine]:
             for n in b[1:-1].split(","):
                 nums.append(int(n))
             buttons.append(nums)
-        machines.append(Machine(light_diagram, buttons, joltage_requirements))
+        machines.append(Machine(light_diagram, len(light_diagram_list), buttons, joltage_requirements))
     return machines
 
 
-def __toggle(diagram, button) -> list:
-    new_diagram = []
-    for l in diagram:
-        new_diagram.append(l)
-
-    for b in button:
-        v = new_diagram[b]
-        if v == ".":
-            new_diagram[b] = "#"
-        elif v == "#":
-            new_diagram[b] = "."
+def __toggle(diagram, button, length) -> int:
+    new_diagram = diagram
+    for pos in button:
+        new_diagram ^= (1 << length - 1 - pos) # left to right indexing
     return new_diagram
 
 
 def __bfs(machine) -> int:
     queue = deque()
     visited = set()
-    visited.add("".join(["."] * len(machine.light_diagram)))
-    for b in machine.buttons:
-        initial_diagram = ["."] * len(machine.light_diagram)
-        queue.append((initial_diagram, b, 0))
+    queue.append((0, 0))
 
     while len(queue) != 0:
-        current_diagram, current_button, current_steps = queue.popleft()
+        current_diagram, current_steps = queue.popleft()
 
         if current_diagram == machine.light_diagram:
             return current_steps
 
         for b in machine.buttons:
-            toggled = __toggle(current_diagram, b)
-            if "".join(toggled) not in visited:
-                visited.add("".join(toggled))
-                queue.append((toggled, b, current_steps + 1))
+            next_diagram = __toggle(current_diagram, b, machine.light_diagram_length)
+            if next_diagram not in visited:
+                visited.add(next_diagram)
+                queue.append((next_diagram, current_steps + 1))
 
     raise Exception("No solution")
 
