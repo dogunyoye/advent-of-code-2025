@@ -61,8 +61,8 @@ def __bfs(machine) -> int:
         if current_diagram == machine.light_diagram:
             return current_steps
 
-        for b in machine.buttons:
-            next_diagram = __toggle(current_diagram, b, machine.light_diagram_length)
+        for button in machine.buttons:
+            next_diagram = __toggle(current_diagram, button, machine.light_diagram_length)
             if next_diagram not in visited:
                 visited.add(next_diagram)
                 queue.append((next_diagram, current_steps + 1))
