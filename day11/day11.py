@@ -24,9 +24,7 @@ def __traverse_devices(devices, output) -> int:
 
 def __traverse_devices_tracking_path(devices, output, dac, fft, memo) -> int:
     if output == "out":
-        if dac and fft:
-            return 1
-        return 0
+        return dac and fft
 
     state = (output, dac, fft)
     if state in memo:
