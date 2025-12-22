@@ -15,7 +15,7 @@ class Machine(object):
         self.joltage_requirements = joltage_requirements
 
 
-def encode_to_bitmask(pattern: str) -> int:
+def __encode_to_bitmask(pattern: str) -> int:
     bitmask = 0
     for ch in pattern:
         bitmask <<= 1              # shift left to make room
@@ -31,7 +31,7 @@ def __parse_machines(data) -> list[Machine]:
     for line in data.splitlines():
         parts = line.split()
         light_diagram_list = list(parts[0][1:len(parts[0])-1])
-        light_diagram = encode_to_bitmask("".join(light_diagram_list))
+        light_diagram = __encode_to_bitmask("".join(light_diagram_list))
         joltage_requirements = list(map(int, parts[-1][1:len(parts[-1])-1].split(",")))
         buttons = []
         for b in parts[1:-1]:
