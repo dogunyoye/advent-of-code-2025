@@ -1,11 +1,12 @@
-import math
 import os.path
 import heapq
 
-# pip install pyunionfind
-from unionfind import UnionFind
+from aoc_utils.unionfind import UnionFind
 
 DATA = os.path.join(os.path.dirname(__file__), 'day08.txt')
+
+# Part 1 asks us to connect the 1000 closest pairs of junction boxes.
+CONNECTIONS_IN_PART_ONE = 1000
 
 
 def __parse_junction_boxes(data) -> list:
@@ -16,25 +17,27 @@ def __parse_junction_boxes(data) -> list:
     return junction_boxes
 
 
-def __euclidean_distance(p, q) -> float:
-    return math.sqrt((p[0] - q[0])**2 + (p[1] - q[1])**2 + (p[2] - q[2])**2)
+def __squared_distance(p, q) -> int:
+    # Only ordering matters, so squared distance avoids sqrt and is exact
+    # for integer coordinates (no floating-point ties near the 1000th pair).
+    return (p[0] - q[0])**2 + (p[1] - q[1])**2 + (p[2] - q[2])**2
 
 
-def part_one(data) -> int:
+def part_one(data, connections=CONNECTIONS_IN_PART_ONE) -> int:
     junction_boxes = __parse_junction_boxes(data)
     distances_pq = []
 
     for i in range(len(junction_boxes)):
         for j in range(i + 1, len(junction_boxes)):
-            heapq.heappush(distances_pq, (__euclidean_distance(junction_boxes[i], junction_boxes[j]), (i, j)))
+            heapq.heappush(distances_pq, (__squared_distance(junction_boxes[i], junction_boxes[j]), (i, j)))
 
     uf = UnionFind()
-    distances = 1000
+    remaining = connections
 
-    while distances != 0:
+    while remaining != 0:
         _, box = heapq.heappop(distances_pq)
         uf.union(box[0], box[1])
-        distances -= 1
+        remaining -= 1
 
     components = sorted(uf.components(), key=lambda c: len(c), reverse=True)
     return len(components[0]) * len(components[1]) * len(components[2])
@@ -47,7 +50,7 @@ def part_two(data) -> int:
 
     for i in range(len(junction_boxes)):
         for j in range(i + 1, len(junction_boxes)):
-            heapq.heappush(distances_pq, (__euclidean_distance(junction_boxes[i], junction_boxes[j]), (i, j)))
+            heapq.heappush(distances_pq, (__squared_distance(junction_boxes[i], junction_boxes[j]), (i, j)))
 
     uf = UnionFind()
 
