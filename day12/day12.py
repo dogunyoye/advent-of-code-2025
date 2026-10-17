@@ -48,6 +48,10 @@ def parse_input(text) -> tuple:
 
 
 def part_one(data: str) -> int:
+    # NOTE: Intentional area-only check, not a real 2D packing search.
+    # Packing is NP-hard and the worked example is deliberately harder than
+    # the real input: there, a region fits iff the presents' total area fits.
+    # Do not "fix" this into a search or it will time out on the real input.
     result = 0
     patterns, sequences = parse_input(data)
     for k, v, in sequences.items():
