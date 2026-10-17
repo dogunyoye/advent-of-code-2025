@@ -1,5 +1,0 @@
-# Third-party packages used by some solutions.
-# Days 01-07, 11, 12 use only the standard library.
-pyunionfind  # day08
-shapely      # day09
-z3-solver    # day10
