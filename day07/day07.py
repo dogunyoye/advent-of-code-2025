@@ -39,23 +39,24 @@ def __determine_number_of_timelines(grid, beam, memo) -> int:
 def part_one(data) -> int:
     result = 0
     grid, start = __generate_grid(data)
-    queue = deque()
-    queue.append(start)
+    splitters = {pos for pos, value in grid.items() if value == "^"}
+    visited = set()
+    queue = deque([start])
 
     while len(queue) != 0:
         beam = queue.popleft()
         next_beam = (beam[0] + 1, beam[1])
-        if next_beam in grid:
-            v = grid[next_beam]
-            if v == ".":
-                grid[next_beam] = "|"
-                queue.append(next_beam)
-            elif v == "^":
-                split_left, split_right = (next_beam[0], next_beam[1] - 1), (next_beam[0], next_beam[1] + 1)
-                grid[split_left], grid[split_right] = "|", "|"
-                queue.append(split_left)
-                queue.append(split_right)
-                result += 1
+
+        if next_beam in splitters:
+            result += 1
+            for split in ((next_beam[0], next_beam[1] - 1), (next_beam[0], next_beam[1] + 1)):
+                if split not in visited:
+                    visited.add(split)
+                    queue.append(split)
+        elif next_beam in grid and next_beam not in visited:
+            visited.add(next_beam)
+            queue.append(next_beam)
+
     return result
 
 
