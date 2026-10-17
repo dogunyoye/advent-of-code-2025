@@ -1,7 +1,8 @@
 import os.path
 from collections import deque
-
-from z3 import Int, Sum, sat, IntVal, Optimize
+from fractions import Fraction
+from itertools import product
+from math import gcd
 
 DATA = os.path.join(os.path.dirname(__file__), 'day10.txt')
 
@@ -70,6 +71,115 @@ def __bfs(machine) -> int:
     raise Exception("No solution")
 
 
+def __build_matrix(targets, buttons) -> list:
+    """A[i][j] = amount counter i is incremented by pressing button j once."""
+    matrix = [[0] * len(buttons) for _ in targets]
+    for j, button in enumerate(buttons):
+        for counter in button:
+            matrix[counter][j] += 1
+    return matrix
+
+
+def __reduced_row_echelon(matrix, targets) -> tuple | None:
+    """Exact RREF of the augmented system ``matrix @ x = targets``.
+
+    Returns ``(rows, pivot_columns)`` where ``rows[i][n]`` is the right-hand
+    side, or ``None`` if the system is inconsistent.
+    """
+    rows = len(matrix)
+    cols = len(matrix[0]) if rows else 0
+    aug = [[Fraction(matrix[i][j]) for j in range(cols)] + [Fraction(targets[i])] for i in range(rows)]
+
+    pivot_columns = []
+    r = 0
+    for c in range(cols):
+        pivot_row = None
+        for i in range(r, rows):
+            if aug[i][c] != 0:
+                pivot_row = i
+                break
+        if pivot_row is None:
+            continue
+
+        aug[r], aug[pivot_row] = aug[pivot_row], aug[r]
+        pivot_value = aug[r][c]
+        aug[r] = [value / pivot_value for value in aug[r]]
+
+        for i in range(rows):
+            if i != r and aug[i][c] != 0:
+                factor = aug[i][c]
+                aug[i] = [a - factor * b for a, b in zip(aug[i], aug[r])]
+
+        pivot_columns.append(c)
+        r += 1
+        if r == rows:
+            break
+
+    for i in range(r, rows):
+        if any(aug[i][c] != 0 for c in range(cols)) or aug[i][cols] != 0:
+            return None
+
+    return aug, pivot_columns
+
+
+def __lcm(a, b) -> int:
+    return a // gcd(a, b) * b
+
+
+def __min_presses(targets, buttons) -> int:
+    """Fewest total presses so that ``A @ x = targets`` with ``x >= 0`` integer.
+
+    The system is small (<= 10 counters, <= 13 buttons) and its null space has
+    dimension <= 3, so after exact Gaussian elimination we can enumerate the
+    free variables. Every ``x_j`` is bounded by the smallest joltage it
+    contributes to, so the enumeration is tiny.
+    """
+    matrix = __build_matrix(targets, buttons)
+    reduced = __reduced_row_echelon(matrix, targets)
+    if reduced is None:
+        raise Exception("Infeasible machine")
+
+    rows, pivot_columns = reduced
+    pivot_set = set(pivot_columns)
+    free_columns = [c for c in range(len(buttons)) if c not in pivot_set]
+
+    ranges = []
+    for f in free_columns:
+        bound = min(targets[c] for c in buttons[f]) if buttons[f] else 0
+        ranges.append(range(bound + 1))
+
+    # Express each pivot variable as ``(rhs - sum(coeff * free)) / denom`` using
+    # integers, so the inner loop never touches Fraction.
+    pivot_terms = []
+    for i in range(len(pivot_columns)):
+        row = rows[i]
+        denom = 1
+        for c in range(len(buttons) + 1):
+            denom = __lcm(denom, row[c].denominator)
+        rhs = int(row[len(buttons)] * denom)
+        terms = [(pos, int(row[f] * denom)) for pos, f in enumerate(free_columns) if row[f] != 0]
+        pivot_terms.append((rhs, denom, terms))
+
+    best = None
+    for free_values in product(*ranges):
+        total = sum(free_values)
+        feasible = True
+        for rhs, denom, terms in pivot_terms:
+            value = rhs
+            for pos, coeff in terms:
+                value -= coeff * free_values[pos]
+            if value < 0 or value % denom != 0:
+                feasible = False
+                break
+            total += value // denom
+        if feasible and (best is None or total < best):
+            best = total
+
+    if best is None:
+        raise Exception("Infeasible machine")
+    return best
+
+
 def part_one(data) -> int:
     result = 0
     machines = __parse_machines(data)
@@ -81,50 +191,8 @@ def part_one(data) -> int:
 def part_two(data) -> int:
     answer = 0
     machines = __parse_machines(data)
-    for m in machines:
-        # AI assisted Z3 solution
-        n_moves = len(m.buttons)
-        n_states = len(m.joltage_requirements)
-
-        # Build increment matrix A[i][j] = how much move j increments state i
-        A = [[0] * n_moves for _ in range(n_states)]
-        for j, mv in enumerate(m.buttons):
-            for s in mv:
-                A[s][j] += 1
-
-        # Variables: x[j] = number of times we apply move j
-        x = [Int(f"x{j}") for j in range(n_moves)]
-
-        # Use Optimize ONLY if we minimize; otherwise simple Solver()
-        solver = Optimize()
-
-        # Non-negative integers
-        for var in x:
-            solver.add(var >= 0)
-
-        # Upper bounds to prevent Z3 from wandering into infinity
-        # Max value needed for any move can't exceed max(target)
-        MAX_T = max(m.joltage_requirements)
-        for var in x:
-            solver.add(var <= MAX_T)
-
-        # Ax = target
-        for i in range(n_states):
-            # IMPORTANT: use IntVal to avoid Python-int mixing
-            solver.add(
-                Sum([IntVal(A[i][j]) * x[j] for j in range(n_moves)]) == IntVal(m.joltage_requirements[i])
-            )
-
-        solver.minimize(Sum(x))
-
-        # Solve
-        result = solver.check()
-        if result != sat:
-            return -1  # infeasible
-
-        model = solver.model()
-        counts = [model[v].as_long() for v in x]
-        answer += sum(counts)
+    for machine in machines:
+        answer += __min_presses(machine.joltage_requirements, machine.buttons)
     return answer
 
 
