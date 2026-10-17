@@ -4,13 +4,6 @@ from math import prod
 DATA = os.path.join(os.path.dirname(__file__), 'day06.txt')
 
 
-def __print_grid(grid):
-    for row in grid:
-        for element in row:
-            print(element, end=" ")
-        print()
-
-
 def __generate_grid(data) -> list:
     grid = []
     for line in data.splitlines():

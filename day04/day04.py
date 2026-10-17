@@ -3,16 +3,6 @@ import os.path
 DATA = os.path.join(os.path.dirname(__file__), 'day04.txt')
 
 
-def __print_grid(grid):
-    max_i = max(grid, key=lambda x: x[0])
-    max_j = max(grid, key=lambda x: x[1])
-    for i in range(max_i[0] + 1):
-        line = ""
-        for j in range(max_j[1] + 1):
-            line += grid[(i, j)]
-        print(line)
-
-
 def __generate_grid(data) -> dict:
     grid = {}
     i = 0
