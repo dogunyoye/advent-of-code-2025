@@ -11,20 +11,24 @@ def __parse_devices(data) -> dict:
     return devices
 
 
-def __traverse_devices(devices, output) -> int:
+def __traverse_devices(devices, output, memo) -> int:
     if output == "out":
         return 1
 
+    if output in memo:
+        return memo[output]
+
     result = 0
     for o in devices[output]:
-        result += __traverse_devices(devices, o)
+        result += __traverse_devices(devices, o, memo)
 
+    memo[output] = result
     return result
 
 
 def __traverse_devices_tracking_path(devices, output, dac, fft, memo) -> int:
     if output == "out":
-        return dac and fft
+        return int(dac and fft)
 
     state = (output, dac, fft)
     if state in memo:
@@ -42,7 +46,7 @@ def __traverse_devices_tracking_path(devices, output, dac, fft, memo) -> int:
 
 def part_one(data) -> int:
     devices = __parse_devices(data)
-    return __traverse_devices(devices, "you")
+    return __traverse_devices(devices, "you", {})
 
 
 def part_two(data) -> int:
